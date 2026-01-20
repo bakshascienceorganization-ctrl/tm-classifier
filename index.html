@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Image Classifier</title>
+
+  <!-- Teachable Machine Library -->
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8/dist/teachablemachine-image.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      padding: 10px;
+    }
+    canvas {
+      width: 100%;
+      max-width: 360px;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+    }
+    .box {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 10px;
+      margin-top: 10px;
+    }
+    button {
+      font-size: 18px;
+      padding: 10px 20px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>Dog · Cat · Bird · Butterfly</h2>
+
+<button onclick="init()">Start Camera</button>
+
+<div id="webcam-container" class="box"></div>
+
+<div class="box">
+  <h3 id="label">Result: -</h3>
+  <p id="confidence">Confidence: -</p>
+</div>
+
+<script>
+  const MODEL_URL = "https://teachablemachine.withgoogle.com/models/eSlGE_h6S/";
+
+  let model, webcam, maxPredictions;
+
+  async function init() {
+    const modelURL = MODEL_URL + "model.json";
+    const metadataURL = MODEL_URL + "metadata.json";
+
+    model = await tmImage.load(modelURL, metadataURL);
+    maxPredictions = model.getTotalClasses();
+
+    const flip = true;
+    webcam = new tmImage.Webcam(320, 320, flip);
+    await webcam.setup();
+    await webcam.play();
+
+    document.getElementById("webcam-container").appendChild(webcam.canvas);
+    window.requestAnimationFrame(loop);
+  }
+
+  async function loop() {
+    webcam.update();
+    await predict();
+    window.requestAnimationFrame(loop);
+  }
+
+  async function predict() {
+    const prediction = await model.predict(webcam.canvas);
+
+    let best = prediction[0];
+    for (let i = 0; i < prediction.length; i++) {
+      if (prediction[i].probability > best.probability) {
+        best = prediction[i];
+      }
+    }
+
+    document.getElementById("label").innerText =
+      "Result: " + best.className;
+
+    document.getElementById("confidence").innerText =
+      "Confidence: " + Math.round(best.probability * 100) + "%";
+  }
+</script>
+
+</body>
+</html>
