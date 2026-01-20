@@ -67,11 +67,12 @@
 
         statusEl.innerText = "Status: Requesting camera permission…";
 
-        const flip = true;
-        webcam = new tmImage.Webcam(320, 320, flip);
+        const flip = false; // rear camera looks natural; no mirror
+webcam = new tmImage.Webcam(320, 320, flip);
 
-        // This line triggers the permission popup
-        await webcam.setup();
+// Request BACK camera explicitly
+await webcam.setup({ facingMode: "environment" });
+
         await webcam.play();
 
         statusEl.innerText = "Status: Camera running ✅ Show postcard!";
